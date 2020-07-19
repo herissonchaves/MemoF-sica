@@ -4,30 +4,24 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class GameController : MonoBehaviour
-{
- 
+{ 
     public List<Button> CartasButtons = new List<Button>();
     public Sprite[] CardsFace; //sprites das cartas
-    public List<Sprite> gameCartas = new List<Sprite>();//uma lista de cardfaces
+    public List<Sprite> deckCartas = new List<Sprite>();//uma lista de cardfaces
     [SerializeField]
     private Sprite cardBack; // intancia a imagem das cartas de background
-
 
     private bool firstPalpite, secondPalpite;
     private int countPalpites;
     private int countCorrectPalpites;
-    private int gamePalpite;
     private int firstPalpiteIndex, secondPalpiteIndex;
     private string firstPalpitePuzzle, secondPalpitePuzzle;
-
-
-
+        //cardsfaces são cartas não ocultas e cardback são cartas viradas para baixo.
     void Start()
     {
         GetButtons(); // adiciona imagens de cardback nos buttons.
-        AddListeners();// verifica o click
         AddGameCartas();// adiciona uma lista de sprites de cardfaces.
-        gamePalpite = gameCartas.Count / 2;
+        AddListeners();// verifica se o usuario clicou na carta.
     }
     void GetButtons()
     {
@@ -41,43 +35,53 @@ public class GameController : MonoBehaviour
     }
     void AddGameCartas()
     {
-        int quantidade = CartasButtons.Count;
-        int index = 0;
-        for(int i = 0; i < quantidade; i++)
+        //cria uma lista de números aleatórios repetidos apenas duas vezes
+        int quantidade = CartasButtons.Count/2;
+        List<int> numerosAleatorios = new List<int>();
+        int j = 0;
+        while (j < 2)// esse laço serve construir o baralho com números aletorios repetidos apenas duas vezes.
         {
-            if (index == quantidade / 2) // faz repetir duas vezes as mesmas cartas
-                index = 0;
-            gameCartas.Add(CardsFace[index]);// total de cartas = 2* a metade
-            index++;
+            for (int i = 0; i < quantidade; i++)
+            {
+                int randomIndex = Random.Range(0, quantidade);
+                while (numerosAleatorios.Contains(randomIndex))
+                {
+                    if (numerosAleatorios.Count >= quantidade)// serve para quebrar o laço quando ficar em loop infinito
+                        break;
+                    else
+                        randomIndex = Random.Range(0, quantidade);
+                }
+                numerosAleatorios.Add(randomIndex);//adiciona o número aleatórios na lista
+                deckCartas.Add(CardsFace[numerosAleatorios[i]]);// constroi o deck adicionando cartas aleatórias 
+            }
+            j++;
+            numerosAleatorios.Clear(); // necessario para voltar a repetir a ter numeros aleatórios não repetidos.
         }
-        //depois criar aqui o embaralhamento das cartas.
     }
     void AddListeners()
     {
         foreach(Button carta in CartasButtons)
        {
-            carta.onClick.AddListener(() => PickCartas());// quando eu clico??
+            carta.onClick.AddListener(() => PickCartas());
        }
     }
     public void PickCartas()
-        //a primeira vez q aperto vai para if e na segunda vez que aperto vai para o else
     {
         if (!firstPalpite)
         {
             firstPalpite = true;
             firstPalpiteIndex = int.Parse(UnityEngine.EventSystems.EventSystem.current.
             currentSelectedGameObject.name);// converte a string em int
-            firstPalpitePuzzle = gameCartas[firstPalpiteIndex].name;//recebe o nome da sprite
-            CartasButtons[firstPalpiteIndex].image.sprite = gameCartas[firstPalpiteIndex];//adciona a sprite no button
-
+            firstPalpitePuzzle = deckCartas[firstPalpiteIndex].name;//recebe o nome da sprite
+            CartasButtons[firstPalpiteIndex].image.sprite = deckCartas[firstPalpiteIndex];//adciona a sprite no button
         }
         else if (!secondPalpite)
         {
             secondPalpite = true;
             secondPalpiteIndex = int.Parse(UnityEngine.EventSystems.EventSystem.current.
             currentSelectedGameObject.name);
-            secondPalpitePuzzle = gameCartas[secondPalpiteIndex].name;
-            CartasButtons[secondPalpiteIndex].image.sprite = gameCartas[secondPalpiteIndex];
+            secondPalpitePuzzle = deckCartas[secondPalpiteIndex].name;
+            CartasButtons[secondPalpiteIndex].image.sprite = deckCartas[secondPalpiteIndex];
             countPalpites++;
             StartCoroutine(CheckMatch());
         }
@@ -90,16 +94,12 @@ public class GameController : MonoBehaviour
             yield return new WaitForSeconds(.12f);
             CartasButtons[firstPalpiteIndex].enabled = false; // desabilita o button
             CartasButtons[secondPalpiteIndex].enabled = false; // desabilita o button
-            //cor das cartas ao acertar
-            //CartasButtons[firstPalpiteIndex].image.color = new Color(1, 0, 0, 0);
-            //CartasButtons[secondPalpiteIndex].image.color = new Color(1, 0, 0, 0);
             CheckIsFinished();
         }
         else {
             yield return new WaitForSeconds(.12f);
             CartasButtons[firstPalpiteIndex].image.sprite = cardBack;
             CartasButtons[secondPalpiteIndex].image.sprite = cardBack;
-           // countPalpites++;
         }
         yield return new WaitForSeconds(.12f);
         firstPalpite = secondPalpite = false;
@@ -107,22 +107,13 @@ public class GameController : MonoBehaviour
     void CheckIsFinished()
     {
         countCorrectPalpites++;
-        if (countCorrectPalpites == gamePalpite)
+        if (countCorrectPalpites == deckCartas.Count / 2)
         {
             Debug.Log("Fim de jogo");
             Debug.Log("muito bem, foram " + countPalpites +" palpites para terminar o jogo");
         }
     }
-    void Embaralhar(List<Sprite> list)
-    {
-        for(int i = 0; i < list.Count; i++)
-        {
-            Sprite temp = list[i];
-            int randomIndex = Random.Range(0, list.Count);
-            list[i] = list[randomIndex];
-            list[randomIndex] = temp;
-        }
-    }
+
 }
 
 
