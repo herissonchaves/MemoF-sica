@@ -2,14 +2,26 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+
 
 public class GameController : MonoBehaviour
 { 
-    public List<Button> CartasButtons = new List<Button>();
+    public List<Button> CartasButtons = new List<Button>(); // lista de buttons
     public Sprite[] CardsFace; //sprites das cartas
     public List<Sprite> deckCartas = new List<Sprite>();//uma lista de cardfaces
     [SerializeField]
     private Sprite cardBack; // intancia a imagem das cartas de background
+
+    // cronometro
+    private float deltaTime = 0;
+    private int segundos;
+    private int minutos = 0;
+    private bool comecarCronometro = false;
+    public Text CronometroSegundosUI;
+    public Text CronometroMinutosUI;
+
+    public Text Movimentos;
 
     private bool firstPalpite, secondPalpite;
     private int countPalpites;
@@ -26,24 +38,24 @@ public class GameController : MonoBehaviour
     void GetButtons()
     {
         //adiciona em object a quantidade de buttons geradas pelos script AddButtons.
-        GameObject[] objects = GameObject.FindGameObjectsWithTag("CardsButton");
+        GameObject[] objects = GameObject.FindGameObjectsWithTag("CardsButton"); // lista de clones dos buttons
         for (int i = 0; i < objects.Length; i++)
         {
-            CartasButtons.Add(objects[i].GetComponent<Button>());
+            CartasButtons.Add(objects[i].GetComponent<Button>()); // adiciona na lista os buttons
             CartasButtons[i].image.sprite = cardBack; // adiciona as imagens cardback.
         }
     }
     void AddGameCartas()
     {
         //cria uma lista de números aleatórios repetidos apenas duas vezes
-        int quantidade = CartasButtons.Count/2;
+        int quantidade = CartasButtons.Count/2; // quantidade de cartas divido por 2
         List<int> numerosAleatorios = new List<int>();
-        int j = 0;
-        while (j < 2)// esse laço serve construir o baralho com números aletorios repetidos apenas duas vezes.
+        int j = 0; // serve apenas para controlar o laço while
+        while (j < 2)// esse laço serve para construir o baralho com números aletorios repetidos apenas duas vezes.
         {
             for (int i = 0; i < quantidade; i++)
             {
-                int randomIndex = Random.Range(0, quantidade);
+                int randomIndex = Random.Range(0, quantidade); // variável para guardar os números aleatórios
                 while (numerosAleatorios.Contains(randomIndex))
                 {
                     if (numerosAleatorios.Count >= quantidade)// serve para quebrar o laço quando ficar em loop infinito
@@ -63,6 +75,7 @@ public class GameController : MonoBehaviour
         foreach(Button carta in CartasButtons)
        {
             carta.onClick.AddListener(() => PickCartas());
+           
        }
     }
     public void PickCartas()
@@ -78,11 +91,13 @@ public class GameController : MonoBehaviour
         else if (!secondPalpite)
         {
             secondPalpite = true;
+            comecarCronometro = true;
             secondPalpiteIndex = int.Parse(UnityEngine.EventSystems.EventSystem.current.
             currentSelectedGameObject.name);
             secondPalpitePuzzle = deckCartas[secondPalpiteIndex].name;
             CartasButtons[secondPalpiteIndex].image.sprite = deckCartas[secondPalpiteIndex];
             countPalpites++;
+           Movimentos.text = countPalpites.ToString("");
             StartCoroutine(CheckMatch());
         }
     }
@@ -113,7 +128,21 @@ public class GameController : MonoBehaviour
             Debug.Log("muito bem, foram " + countPalpites +" palpites para terminar o jogo");
         }
     }
-
+    void Update()
+    {
+        if (comecarCronometro)
+       {
+            deltaTime += Time.deltaTime;
+            segundos = (int)deltaTime;
+            if ( segundos == 60)
+            {
+                deltaTime = 0;
+                minutos++;
+            }
+            CronometroMinutosUI.text = minutos.ToString();
+            CronometroSegundosUI.text = segundos.ToString();
+       }
+    }
 }
 
 
