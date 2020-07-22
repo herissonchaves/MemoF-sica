@@ -9,11 +9,14 @@ public class Menu : MonoBehaviour
     {
         switch (i)
         {
+            case 2:
+                SceneManager.LoadScene("Menu");
+                break;
             default:
-            case (0):
+            case 0:
                 SceneManager.LoadScene("level");
                 break;
-            case (1):
+            case 1:
                 Application.Quit();
                 break;
         }

@@ -12,7 +12,8 @@ public class GameController : MonoBehaviour
     public List<Sprite> deckCartas = new List<Sprite>();//uma lista de cardfaces
     [SerializeField]
     private Sprite cardBack; // intancia a imagem das cartas de background
-
+    public Image PontuacaoEstrelas; // pontuação do jogo através das estrelas
+    public Text Movimentos; // mostra a pontuação dos movimentos.
     // cronometro
     private float deltaTime = 0;
     private int segundos;
@@ -21,16 +22,25 @@ public class GameController : MonoBehaviour
     public Text CronometroSegundosUI;
     public Text CronometroMinutosUI;
 
-    public Text Movimentos;
-
     private bool firstPalpite, secondPalpite;
     private int countPalpites;
     private int countCorrectPalpites;
     private int firstPalpiteIndex, secondPalpiteIndex;
     private string firstPalpitePuzzle, secondPalpitePuzzle;
-        //cardsfaces são cartas não ocultas e cardback são cartas viradas para baixo.
+
+    // menu pop-up mostrando resultado ao jogadro
+    public GameObject MenuPopUp;
+    public Text PontuacaoFinal;
+    public Image PontuacaoEstrelaFinal;
+    public Text CronometroSegundosUIFinal;
+    public Text CronometroMinutosUIFinal;
+
+    //cardsfaces são cartas não ocultas e cardback são cartas viradas para baixo.
     void Start()
     {
+        MenuPopUp.gameObject.SetActive(false);
+        PontuacaoEstrelas.fillAmount = 1;
+        PontuacaoEstrelaFinal.fillAmount = 1;
         GetButtons(); // adiciona imagens de cardback nos buttons.
         AddGameCartas();// adiciona uma lista de sprites de cardfaces.
         AddListeners();// verifica se o usuario clicou na carta.
@@ -97,7 +107,11 @@ public class GameController : MonoBehaviour
             secondPalpitePuzzle = deckCartas[secondPalpiteIndex].name;
             CartasButtons[secondPalpiteIndex].image.sprite = deckCartas[secondPalpiteIndex];
             countPalpites++;
-           Movimentos.text = countPalpites.ToString("");
+           Movimentos.text = countPalpites.ToString("");// pontuação dos movimentos
+            if (countPalpites == 10) // diminui as estrelas
+                PontuacaoEstrelas.fillAmount -= 0.33f;
+            else if (countPalpites == 14)
+                PontuacaoEstrelas.fillAmount -= 0.33f;
             StartCoroutine(CheckMatch());
         }
     }
@@ -124,6 +138,12 @@ public class GameController : MonoBehaviour
         countCorrectPalpites++;
         if (countCorrectPalpites == deckCartas.Count / 2)
         {
+            comecarCronometro = false;// pausa o cronometro
+            MenuPopUp.SetActive(true);// ativa o menu popup
+            CronometroMinutosUIFinal.text = minutos.ToString();
+            CronometroSegundosUIFinal.text = segundos.ToString();
+            PontuacaoFinal.text = countPalpites.ToString("");
+            PontuacaoEstrelaFinal.fillAmount = PontuacaoEstrelas.fillAmount;//recebe a quantidade de estralas final
             Debug.Log("Fim de jogo");
             Debug.Log("muito bem, foram " + countPalpites +" palpites para terminar o jogo");
         }
